@@ -49,6 +49,16 @@ El conjunto de datos predeterminado está en `data/sample_events.csv` y utiliza 
 python -m unittest discover -s tests -v
 ```
 
+## Publicar el showcase
+
+El showcase estático se encuentra en [docs/index.html](docs/index.html) y utiliza eventos sintéticos. Para publicarlo:
+
+1. En **Settings → Pages**, selecciona **GitHub Actions** como origen.
+2. En **Settings → Secrets and variables → Actions → Variables**, crea `ENABLE_PAGES` con valor `true`.
+3. Ejecuta **Deploy Threat-Hunting-_GLASS-SENTINEL showcase to GitHub Pages** desde Actions.
+
+La página no se conecta a endpoints ni recopila telemetría. El programa procesa un CSV local.
+
 ## Limitaciones
 
 La correlación utiliza coincidencia exacta de usuario e IP. NAT, VPN, proxies y cuentas compartidas pueden afectar al resultado. Una alerta es un indicio para investigar, no una prueba de exfiltración ni de actividad maliciosa.
