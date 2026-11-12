@@ -1,28 +1,34 @@
+<p align="center">
+  <img src="https://img.shields.io/badge/THREAT_HUNTING-GLASS_SENTINEL-101010?style=for-the-badge&labelColor=050805&color=00FF41" alt="Glass Sentinel"/>
+  <img src="https://img.shields.io/badge/PYTHON-LOG_CORRELATION-101010?style=for-the-badge&logo=python&logoColor=00FF41" alt="Python"/>
+</p>
+
 # Glass Sentinel | Threat Hunting Lab
 
-Ejercicio de detección en Python que correlaciona fallos de autenticación con exportaciones de datos grandes y no aprobadas.
+A Python detection exercise that correlates authentication failures with large, unapproved data exports. The engine processes local CSV events; the browser showcase uses synthetic data.
+
+<p align="center">
+  <a href="https://tzayadet.github.io/Threat-Hunting-_GLASS-SENTINEL/"><strong>PROJECT SHOWCASE ↗</strong></a> ·
+  <a href="https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL"><strong>SOURCE CODE</strong></a>
+</p>
 
 [![Tests](https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL/actions/workflows/tests.yml/badge.svg)](https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL/actions/workflows/tests.yml)
 
-**Demo:** [showcase estático](docs/index.html) · **Código:** [glass_sentinel.py](glass_sentinel.py)
+## Detection logic
 
-La demo utiliza eventos sintéticos. El programa procesa un CSV local y no se conecta a endpoints, recopila telemetría ni envía datos por red.
+An alert is generated when all of the following conditions match:
 
-## Regla de detección
+1. The event is a data export.
+2. The export is not marked as approved.
+3. The exported volume reaches the configured threshold (50 MB by default).
+4. The same user and source IP recorded a successful login within the previous 10 minutes.
+5. At least two failed authentication attempts for that user and IP occurred before the successful login within the configured window.
 
-Se genera una alerta cuando coinciden estas condiciones:
+Thresholds can be changed through command-line options.
 
-1. El evento corresponde a una exportación.
-2. La exportación no está marcada como aprobada.
-3. El volumen alcanza el umbral configurado (50 MB por defecto).
-4. El mismo usuario y la misma IP registraron un inicio de sesión correcto durante los 10 minutos anteriores.
-5. Antes de ese acceso correcto se registraron al menos dos fallos de autenticación para ese usuario e IP dentro de la ventana configurada.
+## Requirements and usage
 
-Los umbrales pueden modificarse desde la línea de comandos.
-
-## Requisitos y uso
-
-Python 3.10 o superior. No necesita dependencias externas.
+Python 3.10+. No external dependencies are required.
 
 ```bash
 python glass_sentinel.py
@@ -30,41 +36,37 @@ python glass_sentinel.py path/to/events.csv
 python glass_sentinel.py --minimum-mb 100 --window-minutes 15
 ```
 
-El conjunto de datos predeterminado está en `data/sample_events.csv` y utiliza direcciones reservadas para documentación (RFC 5737).
+The default dataset is `data/sample_events.csv` and uses documentation IP ranges reserved by RFC 5737.
 
-## Formato CSV
+## Input format
 
-| Campo | Descripción |
+| Field | Description |
 |---|---|
-| `ts` | Marca temporal ISO 8601 |
-| `user` | Cuenta asociada al evento |
-| `ip` | Dirección IP de origen |
-| `event` | `login_fail`, `login_success` o `export` |
-| `bytes` | Volumen transferido en bytes |
-| `approved` | Estado de aprobación |
+| `ts` | ISO 8601 timestamp |
+| `user` | Account associated with the event |
+| `ip` | Source IP address |
+| `event` | `login_fail`, `login_success` or `export` |
+| `bytes` | Transferred volume in bytes |
+| `approved` | Approval status |
 
-## Pruebas
+## Tests
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-## Publicar el showcase
+## Showcase and deployment
 
-El showcase estático se encuentra en [docs/index.html](docs/index.html) y utiliza eventos sintéticos. Para publicarlo:
+The [static showcase](https://tzayadet.github.io/Threat-Hunting-_GLASS-SENTINEL/) uses synthetic events. It does not connect to endpoints, collect telemetry or transmit data. The source page is available in [docs/index.html](docs/index.html).
 
-1. En **Settings → Pages**, selecciona **GitHub Actions** como origen.
-2. En **Settings → Secrets and variables → Actions → Variables**, crea `ENABLE_PAGES` con valor `true`.
-3. Ejecuta **Deploy Threat-Hunting-_GLASS-SENTINEL showcase to GitHub Pages** desde Actions.
+Pages deployment is defined in `.github/workflows/`. If the first deployment has not completed, enable GitHub Pages with GitHub Actions and follow the workflow's repository-variable requirements.
 
-La página no se conecta a endpoints ni recopila telemetría. El programa procesa un CSV local.
+## Scope and limitations
 
-## Limitaciones
+Correlation uses exact user and IP matching. NAT, VPNs, proxies and shared accounts can affect the result. An alert is an investigation lead, not proof of exfiltration or malicious activity.
 
-La correlación utiliza coincidencia exacta de usuario e IP. NAT, VPN, proxies y cuentas compartidas pueden afectar al resultado. Una alerta es un indicio para investigar, no una prueba de exfiltración ni de actividad maliciosa.
+A production implementation would require source-specific parsers, integrity controls, alert deduplication and threshold tuning against representative data.
 
-Para uso real harían falta parsers adaptados a cada fuente, control de integridad, deduplicación de alertas y ajuste de umbrales con datos representativos.
+## License
 
-## Licencia
-
-Consulta [LICENSE](LICENSE).
+See [LICENSE](LICENSE).
