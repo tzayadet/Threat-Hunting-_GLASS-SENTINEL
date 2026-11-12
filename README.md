@@ -1,80 +1,60 @@
-# Glass Sentinel · Threat-Hunting Lab
+# Glass Sentinel | Threat Hunting Lab
+
+Ejercicio de detección en Python que correlaciona fallos de autenticación con exportaciones de datos grandes y no aprobadas.
 
 [![Tests](https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL/actions/workflows/tests.yml/badge.svg)](https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL/actions/workflows/tests.yml)
 
-Small Python detection-engineering exercise that correlates authentication failures with unusually large, unapproved data exports.
+**Demo:** [showcase estático](docs/index.html) · **Código:** [glass_sentinel.py](glass_sentinel.py)
 
-**Static showcase:** `docs/index.html` · deployment prepared for GitHub Pages; enable Pages and set the `ENABLE_PAGES=true` Actions variable to publish it.
+La demo utiliza eventos sintéticos. El programa procesa un CSV local y no se conecta a endpoints, recopila telemetría ni envía datos por red.
 
-The project is intentionally self-contained: it reads a CSV event stream, applies a transparent correlation rule and prints alerts. It does not connect to endpoints, collect telemetry, execute commands on remote systems or send data over the network.
+## Regla de detección
 
-## Detection logic
+Se genera una alerta cuando coinciden estas condiciones:
 
-An export is flagged when all of the following conditions match:
+1. El evento corresponde a una exportación.
+2. La exportación no está marcada como aprobada.
+3. El volumen alcanza el umbral configurado (50 MB por defecto).
+4. El mismo usuario y la misma IP registraron un inicio de sesión correcto durante los 10 minutos anteriores.
+5. Antes de ese acceso correcto se registraron al menos dos fallos de autenticación para ese usuario e IP dentro de la ventana configurada.
 
-1. The event is an `export`.
-2. The export is not marked as approved.
-3. The exported volume is at least 50 MB by default.
-4. A successful login for the same user and source IP occurred within the preceding 10 minutes.
-5. At least two failed logins for that same user and IP occurred within the 10 minutes before the successful login.
+Los umbrales pueden modificarse desde la línea de comandos.
 
-The thresholds can be changed from the command line. This is a deliberately narrow correlation rule for demonstration, not a complete account-compromise detector.
+## Requisitos y uso
 
-## Requirements
-
-- Python 3.10+
-- No third-party dependencies
-
-## Run
-
-From the repository root:
+Python 3.10 o superior. No necesita dependencias externas.
 
 ```bash
 python glass_sentinel.py
-```
-
-The default input is `data/sample_events.csv`, a synthetic dataset using documentation-only IP ranges.
-
-Use a different CSV:
-
-```bash
 python glass_sentinel.py path/to/events.csv
-```
-
-Change the thresholds:
-
-```bash
 python glass_sentinel.py --minimum-mb 100 --window-minutes 15
 ```
 
-CSV columns:
+El conjunto de datos predeterminado está en `data/sample_events.csv` y utiliza direcciones reservadas para documentación (RFC 5737).
 
-| Column | Meaning |
+## Formato CSV
+
+| Campo | Descripción |
 |---|---|
-| `ts` | ISO-8601 event timestamp, including timezone where available |
-| `user` | Account name |
-| `ip` | Source IP address |
-| `event` | `login_fail`, `login_success` or `export` |
-| `bytes` | Bytes transferred |
-| `approved` | Approval state (`yes/no`, `true/false` or `1/0`) |
+| `ts` | Marca temporal ISO 8601 |
+| `user` | Cuenta asociada al evento |
+| `ip` | Dirección IP de origen |
+| `event` | `login_fail`, `login_success` o `export` |
+| `bytes` | Volumen transferido en bytes |
+| `approved` | Estado de aprobación |
 
-## Tests
-
-Run the standard-library test suite:
+## Pruebas
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-The tests cover positive detection, approved and small exports, user/IP correlation and the time window.
+## Limitaciones
 
-## Limitations
+La correlación utiliza coincidencia exacta de usuario e IP. NAT, VPN, proxies y cuentas compartidas pueden afectar al resultado. Una alerta es un indicio para investigar, no una prueba de exfiltración ni de actividad maliciosa.
 
-- The rule uses exact user and IP matching; NAT, proxies, VPNs and shared accounts can affect correlation.
-- It does not establish malicious intent. A detection is an investigation lead, not proof of exfiltration.
-- The sample data is synthetic and uses RFC 5737 documentation address ranges.
-- Production use would require source-specific parsing, event integrity, alert deduplication, richer baselines and tuning against false positives.
+Para uso real harían falta parsers adaptados a cada fuente, control de integridad, deduplicación de alertas y ajuste de umbrales con datos representativos.
 
-## Author and scope
+## Licencia
 
-Independent defensive-security learning project by [tzayadet](https://github.com/tzayadet). The name is a project codename and does not imply affiliation with any security unit or organization.
+Consulta [LICENSE](LICENSE).
