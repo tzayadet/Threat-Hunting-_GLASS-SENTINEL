@@ -14,12 +14,11 @@ permissions:
   id-token: write
 
 concurrency:
-  group: github-pages
+  group: github-pages-threat-hunting--glass-sentinel
   cancel-in-progress: true
 
 jobs:
   deploy:
-    if: ${{ vars.ENABLE_PAGES == 'true' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
