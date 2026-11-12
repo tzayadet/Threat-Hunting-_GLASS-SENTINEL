@@ -1,5 +1,7 @@
 # Glass Sentinel · Threat-Hunting Lab
 
+[![Tests](https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL/actions/workflows/tests.yml/badge.svg)](https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL/actions/workflows/tests.yml)
+
 Small Python detection-engineering exercise that correlates authentication failures with unusually large, unapproved data exports.
 
 The project is intentionally self-contained: it reads a CSV event stream, applies a transparent correlation rule and prints alerts. It does not connect to endpoints, collect telemetry, execute commands on remote systems or send data over the network.
