@@ -4,6 +4,8 @@
 
 Small Python detection-engineering exercise that correlates authentication failures with unusually large, unapproved data exports.
 
+**Static showcase:** `docs/index.html` · deployment prepared for GitHub Pages; enable Pages and set the `ENABLE_PAGES=true` Actions variable to publish it.
+
 The project is intentionally self-contained: it reads a CSV event stream, applies a transparent correlation rule and prints alerts. It does not connect to endpoints, collect telemetry, execute commands on remote systems or send data over the network.
 
 ## Detection logic
