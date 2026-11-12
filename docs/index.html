@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Glass Sentinel: laboratorio didáctico de detección y correlación de eventos de autenticación y exportación.">
+<title>Glass Sentinel | Threat Hunting Lab</title>
+<style>
+:root{color-scheme:dark;--bg:#080d12;--panel:#101922;--line:#263747;--text:#e7eef5;--muted:#91a4b5;--accent:#71d6b2;--warn:#f4c46b;--red:#ef8c8c;--blue:#82b9ed}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#152832 0,transparent 38%),var(--bg);color:var(--text);font:15px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+main{width:min(1100px,calc(100% - 36px));margin:auto;padding:42px 0 70px}
+header{display:flex;justify-content:space-between;align-items:center;gap:20px;border-bottom:1px solid var(--line);padding-bottom:24px}
+.kicker,.eyebrow{font:700 11px/1.4 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:clamp(36px,6vw,64px);line-height:1.02;letter-spacing:-.05em;margin:12px 0}
+h2{font-size:22px;margin:0 0 14px}h3{font-size:15px;margin:0 0 8px}
+p{color:var(--muted);margin:8px 0 0}.hero{padding:54px 0 34px;max-width:780px}
+.hero p{font-size:18px;max-width:700px}
+.tag{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:5px 10px;color:var(--muted);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0 34px}
+.card{background:linear-gradient(145deg,#14212b,var(--panel));border:1px solid var(--line);border-radius:12px;padding:18px}
+.metric{font-size:28px;font-weight:750;letter-spacing:-.04em;color:var(--text)}
+.metric-label{font:11px ui-monospace,monospace;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+section{margin:34px 0}.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:14px}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;min-width:690px;background:#0e171f}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);font-size:13px}
+th{color:var(--muted);font:700 10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.1em;background:#131f29}
+tr:last-child td{border:0}.mono{font-family:ui-monospace,monospace}.bad{color:var(--red)}.good{color:var(--accent)}.warning{color:var(--warn)}
+.alert{border:1px solid #6d4b2b;background:#241c13;border-radius:12px;padding:18px;margin-top:16px}
+.alert strong{color:var(--warn)}.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.step{border-top:2px solid var(--line);padding:12px 8px 0}.step b{display:block;font-size:13px}.step small{color:var(--muted)}
+pre{white-space:pre-wrap;overflow:auto;background:#080e13;border:1px solid var(--line);border-radius:10px;padding:16px;color:#b9d8ca;font-size:13px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font-size:12px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.steps{grid-template-columns:1fr 1fr}header{align-items:flex-start;flex-direction:column}.hero{padding-top:38px}}
+</style>
+</head>
+<body><main>
+<header><div><div class="kicker">Detection engineering / lab 001</div><strong>GLASS SENTINEL</strong></div><span class="tag">Python · CSV · no external dependencies</span></header>
+<div class="hero">
+<div class="eyebrow">Threat hunting · Event correlation</div>
+<h1>From noisy logins<br>to a useful signal.</h1>
+<p>Un ejercicio de detección que correlaciona fallos de autenticación, un inicio de sesión correcto y una exportación grande no aprobada. Una regla pequeña, explicable y reproducible.</p>
+</div>
+<div class="grid">
+<div class="card"><div class="metric">2+</div><div class="metric-label">Fallos previos requeridos</div><p>Para la misma cuenta y dirección IP.</p></div>
+<div class="card"><div class="metric">10 min</div><div class="metric-label">Ventana de correlación</div><p>Entre fallos, login correcto y exportación.</p></div>
+<div class="card"><div class="metric">50 MB</div><div class="metric-label">Umbral de exportación</div><p>Solo se alertan exportaciones no aprobadas.</p></div>
+</div>
+<section>
+<div class="section-head"><div><div class="eyebrow">01 / Input stream</div><h2>Eventos sintéticos</h2></div><span class="tag">RFC 5737 · documentación</span></div>
+<div class="table-wrap"><table><thead><tr><th>Hora</th><th>Cuenta</th><th>Origen</th><th>Evento</th><th>Volumen</th><th>Aprobado</th></tr></thead><tbody>
+<tr><td class="mono">21:56</td><td>ana</td><td class="mono">198.51.100.24</td><td>login_fail</td><td>—</td><td class="bad">No</td></tr>
+<tr><td class="mono">21:57</td><td>ana</td><td class="mono">198.51.100.24</td><td>login_fail</td><td>—</td><td class="bad">No</td></tr>
+<tr><td class="mono">22:00</td><td>ana</td><td class="mono">198.51.100.24</td><td>login_success</td><td>—</td><td class="bad">No</td></tr>
+<tr><td class="mono">22:05</td><td>ana</td><td class="mono">198.51.100.24</td><td>export</td><td>74 MB</td><td class="bad">No</td></tr>
+<tr><td class="mono">22:07</td><td>svc_backup</td><td class="mono">192.0.2.8</td><td>export</td><td>300 MB</td><td class="good">Sí</td></tr>
+<tr><td class="mono">22:08</td><td>ana</td><td class="mono">203.0.113.50</td><td>export</td><td>90 MB</td><td class="bad">No</td></tr>
+</tbody></table></div>
+<p>El dataset completo incluye también casos de control: una exportación aprobada, una IP distinta y una exportación pequeña. No deben generar alerta.</p>
+</section>
+<section>
+<div class="section-head"><div><div class="eyebrow">02 / Correlation logic</div><h2>Secuencia que dispara la regla</h2></div></div>
+<div class="steps">
+<div class="step"><b>01 · Fail</b><small>Dos fallos o más</small></div>
+<div class="step"><b>02 · Success</b><small>Login correcto</small></div>
+<div class="step"><b>03 · Export</b><small>Más de 50 MB</small></div>
+<div class="step"><b>04 · Scope</b><small>Mismo usuario e IP</small></div>
+<div class="step"><b>05 · Alert</b><small>No aprobado y dentro de ventana</small></div>
+</div>
+<div class="alert"><strong>ALERTA DE EJEMPLO · PRIORIDAD DE INVESTIGACIÓN</strong><p>Cuenta <span class="mono">ana</span> · origen <span class="mono">198.51.100.24</span> · exportación de <span class="mono">74.000.000 bytes</span> · 2 fallos previos correlacionados.</p></div>
+</section>
+<section>
+<div class="section-head"><div><div class="eyebrow">03 / Run locally</div><h2>Reproducir el laboratorio</h2></div></div>
+<pre>python glass_sentinel.py
+python glass_sentinel.py data/sample_events.csv
+python glass_sentinel.py data/sample_events.csv --minimum-mb 100 --window-minutes 15
+python -m unittest discover -s tests -v</pre>
+</section>
+<section>
+<div class="section-head"><div><div class="eyebrow">04 / Boundaries</div><h2>Qué demuestra y qué no</h2></div></div>
+<div class="card"><p><strong>Demuestra:</strong> parsing CSV, normalización básica de eventos, correlación temporal y reglas transparentes sobre usuario, IP, estado de aprobación y volumen.</p><p><strong>No demuestra:</strong> exfiltración maliciosa, compromiso de cuenta ni intención. NAT, VPN, proxies y cuentas compartidas pueden afectar la correlación. Una alerta es una pista para investigar, no una conclusión.</p></div>
+</section>
+<footer>Glass Sentinel · proyecto independiente de aprendizaje en detección defensiva · datos ficticios · <a href="https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL">Código fuente en GitHub</a></footer>
+</main></body></html>
