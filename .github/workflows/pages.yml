@@ -1,4 +1,4 @@
-name: Deploy Glass Sentinel showcase to GitHub Pages
+name: Deploy Threat-Hunting-_GLASS-SENTINEL showcase to GitHub Pages
 
 on:
   push:
@@ -14,20 +14,20 @@ permissions:
   id-token: write
 
 concurrency:
-  group: glass-sentinel-pages
+  group: github-pages
   cancel-in-progress: true
 
 jobs:
   deploy:
     if: ${{ vars.ENABLE_PAGES == 'true' }}
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Checkout
         uses: actions/checkout@v4
-      - name: Configure Pages
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload showcase
         uses: actions/upload-pages-artifact@v3
