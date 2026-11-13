@@ -12,7 +12,7 @@ A Python detection exercise that correlates authentication failures with large, 
   <a href="https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL"><strong>SOURCE CODE</strong></a>
 </p>
 
-[![Tests](https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL/actions/workflows/tests.yml/badge.svg)](https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL/actions/workflows/tests.yml)
+[![Tests](https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL/actions/workflows/tests.yml/badge.svg)](https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL/actions/workflows/tests.yml) · [![Pages](https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL/actions/workflows/pages.yml/badge.svg)](https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL/actions/workflows/pages.yml)
 
 ## Detection logic
 
@@ -36,7 +36,7 @@ python glass_sentinel.py path/to/events.csv
 python glass_sentinel.py --minimum-mb 100 --window-minutes 15
 ```
 
-The default dataset is `data/sample_events.csv` and uses documentation IP ranges reserved by RFC 5737.
+The default dataset is `data/sample_events.csv` and uses documentation IP ranges reserved by RFC 5737. The loader rejects malformed or ambiguous records instead of silently treating them as benign.
 
 ## Input format
 
@@ -49,7 +49,13 @@ The default dataset is `data/sample_events.csv` and uses documentation IP ranges
 | `bytes` | Transferred volume in bytes |
 | `approved` | Approval status |
 
-## Tests
+## Validation
+
+The CSV loader requires timezone-aware timestamps, valid IP addresses, supported event types, non-negative byte counts and explicit approval values. Correlation thresholds must be positive.
+
+```bash
+python -m unittest discover -s tests -v
+```
 
 ```bash
 python -m unittest discover -s tests -v
@@ -57,7 +63,7 @@ python -m unittest discover -s tests -v
 
 ## Showcase and deployment
 
-The [static showcase](https://tzayadet.github.io/Threat-Hunting-_GLASS-SENTINEL/) uses synthetic events. It does not connect to endpoints, collect telemetry or transmit data. The source page is available in [docs/index.html](docs/index.html).
+The [static showcase](https://tzayadet.github.io/Threat-Hunting-_GLASS-SENTINEL/) uses synthetic events. It does not connect to endpoints, collect telemetry or transmit data. The source page is available in [docs/index.html](docs/index.html). The Pages workflow runs only when the repository variable `ENABLE_PAGES` is set to `true` and GitHub Pages is enabled with GitHub Actions as its source.
 
 Pages deployment is defined in `.github/workflows/`. If the first deployment has not completed, enable GitHub Pages with GitHub Actions and follow the workflow's repository-variable requirements.
 
