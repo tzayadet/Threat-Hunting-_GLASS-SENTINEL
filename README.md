@@ -8,7 +8,7 @@
 A Python detection exercise that correlates authentication failures with large, unapproved data exports. The engine processes local CSV events; the browser showcase uses synthetic data.
 
 <p align="center">
-  <a href="https://tzayadet.github.io/Threat-Hunting-_GLASS-SENTINEL/"><strong>PROJECT SHOWCASE ↗</strong></a> ·
+  <a href="https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL/blob/main/docs/index.html"><strong>SHOWCASE SOURCE ↗</strong></a> ·
   <a href="https://github.com/tzayadet/Threat-Hunting-_GLASS-SENTINEL"><strong>SOURCE CODE</strong></a>
 </p>
 
@@ -53,19 +53,9 @@ The default dataset is `data/sample_events.csv` and uses documentation IP ranges
 
 The CSV loader requires timezone-aware timestamps, valid IP addresses, supported event types, non-negative byte counts and explicit approval values. Correlation thresholds must be positive.
 
-```bash
-python -m unittest discover -s tests -v
-```
+## Showcase
 
-```bash
-python -m unittest discover -s tests -v
-```
-
-## Showcase and deployment
-
-The [static showcase](https://tzayadet.github.io/Threat-Hunting-_GLASS-SENTINEL/) uses synthetic events. It does not connect to endpoints, collect telemetry or transmit data. The source page is available in [docs/index.html](docs/index.html). The Pages workflow runs only when the repository variable `ENABLE_PAGES` is set to `true` and GitHub Pages is enabled with GitHub Actions as its source.
-
-Pages deployment is defined in `.github/workflows/`. If the first deployment has not completed, enable GitHub Pages with GitHub Actions and follow the workflow's repository-variable requirements.
+The [showcase source](docs/index.html) uses synthetic events. It does not connect to endpoints, collect telemetry or transmit data. To publish it, enable GitHub Pages with GitHub Actions as its source and set the repository variable `ENABLE_PAGES` to `true`. Until then, the deployment job is intentionally skipped.
 
 ## Scope and limitations
 
