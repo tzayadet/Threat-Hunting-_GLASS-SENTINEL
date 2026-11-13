@@ -1,7 +1,9 @@
+import tempfile
 import unittest
+from pathlib import Path
 from datetime import datetime, timedelta
 
-from glass_sentinel import Event, detect_suspicious_exports
+from glass_sentinel import Event, detect_suspicious_exports, load_events
 
 
 class GlassSentinelTests(unittest.TestCase):
@@ -58,6 +60,33 @@ class GlassSentinelTests(unittest.TestCase):
             )
         ]
         self.assertEqual(detect_suspicious_exports(events), [])
+
+    def test_rejects_invalid_correlation_thresholds(self):
+        for kwargs in (
+            {"minimum_bytes": 0},
+            {"window": timedelta(0)},
+            {"minimum_failed_logins": 0},
+        ):
+            with self.subTest(kwargs=kwargs):
+                with self.assertRaises(ValueError):
+                    detect_suspicious_exports(self.events, **kwargs)
+
+    def test_load_events_requires_timezone_ip_event_and_approval_value(self):
+        header = "ts,user,ip,event,bytes,approved\\n"
+        invalid_rows = (
+            "2026-11-06T22:00:00,ana,198.51.100.24,login_fail,0,no\\n",
+            "2026-11-06T22:00:00+01:00,ana,not-an-ip,login_fail,0,no\\n",
+            "2026-11-06T22:00:00+01:00,ana,198.51.100.24,unknown,0,no\\n",
+            "2026-11-06T22:00:00+01:00,ana,198.51.100.24,export,-1,no\\n",
+            "2026-11-06T22:00:00+01:00,ana,198.51.100.24,export,1,maybe\\n",
+        )
+        for row in invalid_rows:
+            with self.subTest(row=row):
+                with tempfile.TemporaryDirectory() as tmp:
+                    path = Path(tmp) / "events.csv"
+                    path.write_text(header + row, encoding="utf-8")
+                    with self.assertRaises(ValueError):
+                        load_events(path)
 
     def test_respects_correlation_window(self):
         events = [
