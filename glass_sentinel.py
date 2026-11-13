@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import ipaddress
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -42,14 +43,37 @@ def load_events(csv_path: Path) -> list[Event]:
 
         for line_number, row in enumerate(reader, start=2):
             try:
+                timestamp = datetime.fromisoformat(row["ts"])
+                if timestamp.tzinfo is None or timestamp.utcoffset() is None:
+                    raise ValueError("timestamp must include a timezone offset")
+
+                user = row["user"].strip()
+                if not user:
+                    raise ValueError("user must not be empty")
+
+                ip = row["ip"].strip()
+                ipaddress.ip_address(ip)
+
+                event_type = row["event"].strip().lower()
+                if event_type not in {"login_fail", "login_success", "export"}:
+                    raise ValueError(f"unsupported event type: {event_type}")
+
+                transferred = int(row["bytes"])
+                if transferred < 0:
+                    raise ValueError("bytes must not be negative")
+
+                approved_value = row["approved"].strip().lower()
+                if approved_value not in {"yes", "no", "true", "false", "1", "0"}:
+                    raise ValueError("approved must be yes/no, true/false or 1/0")
+
                 events.append(
                     Event(
-                        timestamp=datetime.fromisoformat(row["ts"]),
-                        user=row["user"].strip(),
-                        ip=row["ip"].strip(),
-                        event=row["event"].strip().lower(),
-                        bytes_transferred=int(row["bytes"]),
-                        approved=row["approved"].strip().lower() in {"yes", "true", "1"},
+                        timestamp=timestamp,
+                        user=user,
+                        ip=str(ipaddress.ip_address(ip)),
+                        event=event_type,
+                        bytes_transferred=transferred,
+                        approved=approved_value in {"yes", "true", "1"},
                     )
                 )
             except (TypeError, ValueError) as exc:
@@ -66,6 +90,13 @@ def detect_suspicious_exports(
     minimum_failed_logins: int = 2,
 ) -> list[Alert]:
     """Flag large, unapproved exports preceded by failed logins and a success."""
+    if minimum_bytes <= 0:
+        raise ValueError("minimum_bytes must be greater than zero")
+    if window <= timedelta(0):
+        raise ValueError("window must be greater than zero")
+    if minimum_failed_logins < 1:
+        raise ValueError("minimum_failed_logins must be at least one")
+
     ordered = sorted(events, key=lambda item: item.timestamp)
     alerts: list[Alert] = []
 
